@@ -1,0 +1,30 @@
+{
+    "sysroot_src": "C:\\Users\\mano\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\src\\rust\\library",
+    "crates": [
+        {
+            "root_module": "1/",
+            "edition": "2021",
+            "deps": []
+        },
+        {
+            "root_module": "2/",
+            "edition": "2021",
+            "deps": []
+        },
+        {
+            "root_module": "3/",
+            "edition": "2021",
+            "deps": []
+        },
+        {
+            "root_module": "4/",
+            "edition": "2021",
+            "deps": []
+        },
+        {
+            "root_module": "5/",
+            "edition": "2021",
+            "deps": []
+        }
+    ]
+}

@@ -5,8 +5,10 @@ fn main() {
     let input = read_to_string("input-5.txt").unwrap();
     let lines = input.lines();
 
+    // get chart of crates
     let mut chart = get_chart(lines.clone());
 
+    // get move directions
     let mut directions: Vec<&str> = Vec::new();
     for line in lines {
         if line.contains("move") {
@@ -14,15 +16,17 @@ fn main() {
         }
     }
     
+    // execute each direction
     for direction in directions {
         let direction = direction.split(" ").collect::<Vec<&str>>();
         let from = direction[3].parse::<usize>().unwrap();
         let to = direction[5].parse::<usize>().unwrap();
         let amount = direction[1].parse::<usize>().unwrap();
 
-        move_amount(&mut chart, from-1, to-1, amount);
+        move_amount_multi(&mut chart, from-1, to-1, amount);
     }
 
+    // get the top crate from each stack
     let mut top_of_stacks: String = String::new();
     for line in &chart {
         top_of_stacks += &line[0].to_string();
@@ -65,9 +69,18 @@ fn get_chart(lines: Lines) -> Vec<Vec<char>> {
     chart
 }
 
+// one at a time
 fn move_amount(chart: &mut Vec<Vec<char>>, from: usize, to: usize, amount: usize) {
     for _ in 0..amount {
         let c = chart[from].remove(0);
+        chart[to].insert(0, c);
+    }
+}
+
+// multiple at a time
+fn move_amount_multi(chart: &mut Vec<Vec<char>>, from: usize, to: usize, amount: usize) {
+    for i in (0..amount).rev() {
+        let c = chart[from].remove(i);
         chart[to].insert(0, c);
     }
 }
