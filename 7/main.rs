@@ -59,13 +59,21 @@ impl Node {
     fn get_nodes_under_size(&self, size: usize) -> Vec<&Node> {
         let mut nodes: Vec<&Node> = Vec::new();
         for node in &self.children {
-            if node.children.len() > 0 && node.size < size{
+            if node.children.len() > 0 && node.size < size {
                 nodes.push(node);
-                if node.size == 0 {
-                    // panic!("Size is 0 for node: {:#?}", node);
-                }
             }
             nodes.append(&mut node.get_nodes_under_size(size));
+        }
+        return nodes;
+    }
+
+    fn get_nodes_over_size(&self, size: usize) -> Vec<&Node> {
+        let mut nodes: Vec<&Node> = Vec::new();
+        for node in &self.children {
+            if node.children.len() > 0 && node.size > size {
+                nodes.push(node);
+            }
+            nodes.append(&mut node.get_nodes_over_size(size));
         }
         return nodes;
     }
@@ -131,17 +139,34 @@ fn main() {
     fs.calculate_node_sizes();
     fs.calculate_root_size();
 
-    let vec = fs.get_nodes_under_size(100000);
-    let mut sum = 0;
+    // Part 1
+    // let vec = fs.get_nodes_under_size(100000);
+    // let mut sum = 0;
 
-    println!("{:#?}", fs);
+    // println!("{:#?}", fs);
 
-    for node in vec {
+    // for node in vec {
+    //     println!("{}: {}", node.name, node.size);
+    //     sum += node.size;
+    // }
+
+    // println!("\nSum: {}", sum);
+
+    // println!("Total number of nodes: {}", fs.total_num_dirs());
+
+    // Part 2
+    const FS_SIZE: usize = 70000000;
+    const UPDATE_SIZE: usize = 30000000;
+    let unused_space = FS_SIZE - fs.size;
+    let required_space = UPDATE_SIZE - unused_space;
+    println!("Unused space: {}", unused_space);
+    println!("Required space: {}\n", required_space);
+
+    let mut vec = fs.get_nodes_over_size(required_space);
+    vec.sort_by(|a, b| a.size.cmp(&b.size));
+    for node in &vec {
         println!("{}: {}", node.name, node.size);
-        sum += node.size;
     }
 
-    println!("\nSum: {}", sum);
-
-    println!("Total number of nodes: {}", fs.total_num_dirs());
+    println!("\nSmallest directory to delete: {}: {}", vec[0].name, vec[0].size);
 }
