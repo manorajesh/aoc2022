@@ -40,9 +40,12 @@ fn main() {
     for _ in 0..9 {
         knots.push(Knot::new());
     }
+    let knots_len = knots.len();
 
     tail_past_locations.push([0, 0]);
     for direction in directions {
+        knots[0].prev_x = knots[0].x;
+        knots[0].prev_y = knots[0].y;
         let dir = direction.split(" ").collect::<Vec<&str>>()[0];
         let num = direction.split(" ").collect::<Vec<&str>>()[1].parse::<i32>().unwrap();
         match &dir {
@@ -61,29 +64,47 @@ fn main() {
             _ => {}
         }
 
-        for i in 0..knots.len() {
-            if i == 0 {
-                continue;
-            }
-
+        for i in 1..knots_len {
             let prev_knot = knots[i-1].clone();
-            let mut knot = knots[i];
+            let mut knot = &mut knots[i];
 
-            if !is_knot_touching_other_knot([prev_knot.x, prev_knot.x], [knot.x, knot.y]) {
+            if !is_knot_touching_other_knot([prev_knot.x, prev_knot.y], [knot.x, knot.y]) {
                 knot.prev_x = knot.x;
                 knot.prev_y = knot.y;
-                knot.x = prev_knot.x;
-                knot.y = prev_knot.y;
+                knot.x = prev_knot.prev_y;
+                knot.y = prev_knot.prev_y;
 
-                if i == knots.len()-1 && !tail_past_locations.contains(&[knot.x, knot.y]){
+                if distance(*knot, prev_knot) > 1 {
+                    let x_diff = (knot.x - prev_knot.x).abs();
+                    let y_diff = (knot.y - prev_knot.y).abs();
+                    if x_diff > y_diff {
+                        if knot.x > prev_knot.x {
+                            knot.x = prev_knot.x + 1;
+                        } else {
+                            knot.x = prev_knot.x - 1;
+                        }
+                    } else {
+                        if knot.y > prev_knot.y {
+                            knot.y = prev_knot.y + 1;
+                        } else {
+                            knot.y = prev_knot.y - 1;
+                        }
+                    }
+                }
+
+                if i == knots_len-1 && !tail_past_locations.contains(&[knot.x, knot.y]){
                     tail_past_locations.push([knot.x, knot.y]);
                 }
             }
         }
-        // print_it(&tail_past_locations);
+        print_it(&tail_past_locations);
     }
     print_it(&tail_past_locations);
     println!("Tail locations: {}", tail_past_locations.len());
+}
+
+fn distance(loc1: Knot, loc2: Knot) -> i32 {
+    ((loc1.x - loc2.y).abs() + (loc1.x - loc2.y).abs())
 }
 
 fn is_knot_touching_other_knot(head_location: [i32; 2], tail_location: [i32; 2]) -> bool {
