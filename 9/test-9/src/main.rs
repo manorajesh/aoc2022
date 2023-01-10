@@ -1,4 +1,5 @@
 use std::fs::read_to_string;
+use std::ops::Sub;
 
 #[derive(Debug, Clone, Copy)]
 struct Knot {
@@ -15,6 +16,19 @@ impl Knot {
             y: 0,
             prev_x: 0,
             prev_y: 0,
+        }
+    }
+}
+
+impl Sub for Knot {
+    type Output = Self;
+
+    fn sub(self, other: Knot) -> Self::Output {
+        Self {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            prev_x: self.prev_x,
+            prev_y: self.prev_y,
         }
     }
 }
@@ -68,43 +82,49 @@ fn main() {
             let prev_knot = knots[i-1].clone();
             let mut knot = &mut knots[i];
 
-            if !is_knot_touching_other_knot([prev_knot.x, prev_knot.y], [knot.x, knot.y]) {
-                knot.prev_x = knot.x;
-                knot.prev_y = knot.y;
-                knot.x = prev_knot.prev_y;
-                knot.y = prev_knot.prev_y;
+            let diff = prev_knot - *knot;
+            let (dx, dy) = match (diff.x, diff.y) {
+                // overlapping
+                (0, 0) => (0, 0),
+                // touching up/left/down/right
+                (0, 1) | (1, 0) | (0, -1) | (-1, 0) => (0, 0),
+                // touching diagonally
+                (1, 1) | (1, -1) | (-1, 1) | (-1, -1) => (0, 0),
+                // need to move up/left/down/right
+                (0, 2) => (0, 1),
+                (0, -2) => (0, -1),
+                (2, 0) => (1, 0),
+                (-2, 0) => (-1, 0),
+                // need to move to the right diagonally
+                (2, 1) => (1, 1),
+                (2, -1) => (1, -1),
+                // need to move to the left diagonally
+                (-2, 1) => (-1, 1),
+                (-2, -1) => (-1, -1),
+                // need to move up/down diagonally
+                (1, 2) => (1, 1),
+                (-1, 2) => (-1, 1),
+                (1, -2) => (1, -1),
+                (-1, -2) => (-1, -1),
+                // 🆕 need to move diagonally
+                (-2, -2) => (-1, -1),
+                (-2, 2) => (-1, 1),
+                (2, -2) => (1, -1),
+                (2, 2) => (1, 1),
+                _ => panic!("unhandled case: tail - head = {diff:?}"),
+            };
+            knot.x += dx;
+            knot.y += dy;
 
-                if distance(*knot, prev_knot) > 1 {
-                    let x_diff = (knot.x - prev_knot.x).abs();
-                    let y_diff = (knot.y - prev_knot.y).abs();
-                    if x_diff > y_diff {
-                        if knot.x > prev_knot.x {
-                            knot.x = prev_knot.x + 1;
-                        } else {
-                            knot.x = prev_knot.x - 1;
-                        }
-                    } else {
-                        if knot.y > prev_knot.y {
-                            knot.y = prev_knot.y + 1;
-                        } else {
-                            knot.y = prev_knot.y - 1;
-                        }
-                    }
-                }
-
-                if i == knots_len-1 && !tail_past_locations.contains(&[knot.x, knot.y]){
-                    tail_past_locations.push([knot.x, knot.y]);
-                }
+            if i == knots_len - 1 && !tail_past_locations.contains(&[knot.x, knot.y]) {
+                tail_past_locations.push([knot.x, knot.y]);
             }
         }
-        print_it(&tail_past_locations);
-    }
-    print_it(&tail_past_locations);
-    println!("Tail locations: {}", tail_past_locations.len());
-}
 
-fn distance(loc1: Knot, loc2: Knot) -> i32 {
-    ((loc1.x - loc2.y).abs() + (loc1.x - loc2.y).abs())
+        // print_it(&tail_past_locations);
+    }
+    // print_it(&tail_past_locations);
+    println!("Tail locations: {}", tail_past_locations.len());
 }
 
 fn is_knot_touching_other_knot(head_location: [i32; 2], tail_location: [i32; 2]) -> bool {
